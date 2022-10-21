@@ -95,15 +95,18 @@ public class FibonacciController {
      * @return ratio as string
      */
     @GetMapping("findRatio")
-    public ResponseEntity<String> getRatio(@RequestParam int n) throws FibonacciOutOfRangeException {
-        int divident = utilites.fibonacci(n);
-        int divisor = utilites.fibonacci(n - 1);
+    public ResponseEntity<String> getRatio(@RequestParam int n) {
         String result;
         try {
+            int divident = utilites.fibonacci(n);
+            int divisor = utilites.fibonacci(n - 1);
             result = String.valueOf(divident / divisor);
         } catch (ArithmeticException e) {
             return ResponseEntity.ok("0");
-        } catch (Exception e) {
+        } catch (FibonacciOutOfRangeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Uh oh! Reach out to support");
         }
         return ResponseEntity.ok(result);
