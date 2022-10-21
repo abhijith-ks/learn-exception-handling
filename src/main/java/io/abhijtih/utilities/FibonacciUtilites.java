@@ -1,5 +1,6 @@
 package io.abhijtih.utilities;
 
+import io.abhijtih.exception.FibonacciInputException;
 import io.abhijtih.exception.FibonacciOutOfRangeException;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ public class FibonacciUtilites {
     public int fibonacci(int position) throws FibonacciOutOfRangeException {
         if(position > 8)
             throw new FibonacciOutOfRangeException("Fibonacci sequence more than 8 is not supported");
+        if(position == 0) return 0;
         if(position == 1 || position == 2) return 1; // Comment this to test the Stack Overflow Exception
         return fibonacci(position - 1) + fibonacci( position - 2);
     }
@@ -28,11 +30,19 @@ public class FibonacciUtilites {
     /**
      * Generate fibonacci sequence without recursion
      *
-     * @param n total number of fibonacci sequence
+     * @param str total number of fibonacci sequence
      * @return list of integers in sequence
      */
-    public List<Integer> getSequence(int n) {
-        List<Integer> sequence = new ArrayList<>();
+    public List<Integer> getSequence(String str, List<Integer> sequence) throws FibonacciInputException {
+        int n;
+        try {
+            n = Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            throw new FibonacciInputException("Invalid input. Please provide a valid number");
+        }
+        if(sequence == null) {
+            sequence = new ArrayList<>();
+        }
         sequence.add(0);
         int prev = 0;
         int curr = 1;
@@ -70,7 +80,7 @@ public class FibonacciUtilites {
      * @param filename which contains fibonacci sequence
      * @return fibonacci sequence as a string
      */
-    public String getSequence(String filename) throws FileNotFoundException {
+    public String getSequenceFromFile(String filename) throws FileNotFoundException {
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         return reader.lines().collect(Collectors.joining());
     }

@@ -1,5 +1,6 @@
 package io.abhijtih.controller;
 
+import io.abhijtih.exception.FibonacciInputException;
 import io.abhijtih.exception.FibonacciOutOfRangeException;
 import io.abhijtih.utilities.FibonacciUtilites;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,8 @@ public class FibonacciController {
             number = utilites.fibonacci(n);
         } catch (FibonacciOutOfRangeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Uh oh! Reach out to support");
         }
         return ResponseEntity.ok(String.valueOf(number));
     }
@@ -42,13 +45,24 @@ public class FibonacciController {
      * @return name of the file created
      */
     @PostMapping("createSequence")
-    public ResponseEntity<String> generateFibonacciSequence(@RequestParam int n) {
-        List<Integer> sequence = utilites.getSequence(n);
+    public ResponseEntity<String> generateFibonacciSequence(@RequestParam String n) {
+        List<Integer> sequence;
+        try {
+            sequence = utilites.getSequence(n, null);
+        } catch (FibonacciInputException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (NullPointerException e) {
+            return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body("NPE");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Uh oh! Reach out to support");
+        }
         String fileName;
         try {
             fileName = utilites.storeSequence(sequence);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Uh oh! Reach out to support");
         }
         return ResponseEntity.ok(fileName);
     }
@@ -64,12 +78,35 @@ public class FibonacciController {
     public ResponseEntity<String> retrieveFibonacciSequence(@RequestParam String fileName) throws IOException {
         String sequence;
         try {
-            sequence = utilites.getSequence(fileName);
+            sequence = utilites.getSequenceFromFile(fileName);
         } catch (FileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("File not available. Please check request and try again " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Uh oh! Reach out to support");
         }
         return ResponseEntity.ok(sequence);
+    }
+
+    /**
+     * Get the between two consecutive fibonacci number
+     *
+     * @param n current divident and n-1 is divisor
+     * @return ratio as string
+     */
+    @GetMapping("findRatio")
+    public ResponseEntity<String> getRatio(@RequestParam int n) throws FibonacciOutOfRangeException {
+        int divident = utilites.fibonacci(n);
+        int divisor = utilites.fibonacci(n - 1);
+        String result;
+        try {
+            result = String.valueOf(divident / divisor);
+        } catch (ArithmeticException e) {
+            return ResponseEntity.ok("0");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Uh oh! Reach out to support");
+        }
+        return ResponseEntity.ok(result);
     }
 
 
